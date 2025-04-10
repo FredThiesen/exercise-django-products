@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Produto
+from .models import Produto, Categoria
 
 # Create your views here.
 
@@ -9,12 +9,18 @@ def index(request):
 
 
 def produtos(request):
-    # Vamos pegar todos os produtos do banco de dados
-    lista_produtos = Produto.objects.all()
-    dados_index = {
-        'frase': 'Frase teste',
-        'nome': 'Ricardo',
-        'idade': 25,
-        'produtos': lista_produtos,  # Passando a lista de produtos para o dicionario
-    }
-    return render(request, 'produtos/produtos.html', dados_index)
+    categoria_id = request.GET.get('categoria')
+    
+    if categoria_id:
+        produtos = Produto.objects.filter(categoria_id=categoria_id)
+    else:
+        produtos = Produto.objects.all()
+    
+    produtos = produtos.order_by('categoria__nome', 'nome')
+    categorias = Categoria.objects.all()
+    
+    return render(request, 'produtos/produtos.html', {
+        'produtos': produtos,
+        'categorias': categorias,
+        'categoria_selecionada': int(categoria_id) if categoria_id else None
+    })
